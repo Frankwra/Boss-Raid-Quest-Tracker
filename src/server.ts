@@ -1,10 +1,16 @@
 import 'dotenv/config';
 import Fastify from 'fastify';
+import cors from '@fastify/cors';
 import { questsRoutes } from './routes/quests.routes.js';
 import { env } from './config/env.js';
 
 const app = Fastify({
   logger: true,
+});
+
+await app.register(cors, {
+  origin: env.FRONTEND_URL,
+  credentials: true,
 });
 
 app.register(questsRoutes);
