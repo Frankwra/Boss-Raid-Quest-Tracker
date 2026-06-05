@@ -2,11 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { Quest } from '@prisma/client';
 import { prisma } from '../../../src/lib/prisma.js';
 import { questService } from '../../../src/services/quest.service.js';
+import { ResourceNotFoundError } from '../../../src/errors/resource-not-found.error.js';
 
 vi.mock('../../../src/lib/prisma.js', () => ({
   prisma: {
     quest: {
       create: vi.fn(),
+      findMany: vi.fn(),
+      findUnique: vi.fn(),
     },
   },
 }));
@@ -68,6 +71,49 @@ describe('QuestService', () => {
         data: { titulo: input.titulo, descricao: input.descricao, xp: input.xp },
       });
       expect(result.descricao).toBe(input.descricao);
+    });
+  });
+
+  describe('findAll', () => {
+    it('deve chamar prisma.quest.findMany', async () => {
+      vi.mocked(prisma.quest.findMany).mockResolvedValue([]);
+
+      const result = await questService.findAll();
+
+      expect(prisma.quest.findMany).toHaveBeenCalledWith();
+      expect(result).toEqual([]);
+    });
+
+    it('deve retornar lista de quests quando há registros', async () => {
+      const quests = [
+        makeQuest({ id: 'uuid-1', titulo: 'Quest 1' }),
+        makeQuest({ id: 'uuid-2', titulo: 'Quest 2' }),
+      ];
+      vi.mocked(prisma.quest.findMany).mockResolvedValue(quests);
+
+      const result = await questService.findAll();
+
+      expect(result).toEqual(quests);
+    });
+  });
+
+  describe('findById', () => {
+    it('deve chamar prisma.quest.findUnique com o id correto', async () => {
+      const quest = makeQuest({ id: 'uuid-1', titulo: 'Quest 1' });
+      vi.mocked(prisma.quest.findUnique).mockResolvedValue(quest);
+
+      const result = await questService.findById('uuid-1');
+
+      expect(prisma.quest.findUnique).toHaveBeenCalledWith({ where: { id: 'uuid-1' } });
+      expect(result).toEqual(quest);
+    });
+
+    it('deve lançar ResourceNotFoundError quando não encontrada', async () => {
+      vi.mocked(prisma.quest.findUnique).mockResolvedValue(null);
+
+      await expect(questService.findById('uuid-inexistente')).rejects.toBeInstanceOf(
+        ResourceNotFoundError
+      );
     });
   });
 });
