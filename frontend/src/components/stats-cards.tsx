@@ -14,11 +14,11 @@ interface Card {
 export function StatsCards({ stats }: StatsCardsProps) {
   const cards: Card[] = [
     { label: 'Total de quests', value: stats.total, accent: 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100' },
-    { label: 'Concluídas', value: stats.concluidas, accent: 'bg-green-100 text-green-900 dark:bg-green-900/30 dark:text-green-200' },
-    { label: 'Pendentes', value: stats.pendentes, accent: 'bg-amber-100 text-amber-900 dark:bg-amber-900/30 dark:text-amber-200' },
-    { label: 'XP total', value: stats.xpTotal, accent: 'bg-purple-100 text-purple-900 dark:bg-purple-900/30 dark:text-purple-200' },
-    { label: 'XP ganho', value: stats.xpGanho, hint: 'de quests concluídas', accent: 'bg-blue-100 text-blue-900 dark:bg-blue-900/30 dark:text-blue-200' },
-    { label: 'Progresso', value: `${stats.progresso}%`, accent: 'bg-rose-100 text-rose-900 dark:bg-rose-900/30 dark:text-rose-200' },
+    { label: 'Concluídas', value: stats.concluidas, accent: 'bg-green-100 text-green-900 dark:bg-green-800/40 dark:text-green-100' },
+    { label: 'Pendentes', value: stats.pendentes, accent: 'bg-amber-100 text-amber-900 dark:bg-amber-800/40 dark:text-amber-100' },
+    { label: 'XP total', value: stats.xpTotal, accent: 'bg-purple-100 text-purple-900 dark:bg-purple-800/40 dark:text-purple-100' },
+    { label: 'XP ganho', value: stats.xpGanho, hint: 'de quests concluídas', accent: 'bg-blue-100 text-blue-900 dark:bg-blue-800/40 dark:text-blue-100' },
+    { label: 'Progresso', value: `${stats.progresso}%`, accent: 'bg-rose-100 text-rose-900 dark:bg-rose-800/40 dark:text-rose-100' },
   ];
 
   return (

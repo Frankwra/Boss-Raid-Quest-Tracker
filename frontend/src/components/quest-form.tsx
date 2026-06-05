@@ -88,7 +88,7 @@ export function QuestForm({ mode, questId }: QuestFormProps) {
         <input
           {...register('titulo')}
           type="text"
-          className="rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          className="rounded border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500"
         />
         {errors.titulo && <span className="text-xs text-red-600">{errors.titulo.message}</span>}
       </label>
@@ -98,7 +98,7 @@ export function QuestForm({ mode, questId }: QuestFormProps) {
         <textarea
           {...register('descricao')}
           rows={3}
-          className="rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          className="rounded border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder:text-zinc-500"
         />
         {errors.descricao && <span className="text-xs text-red-600">{errors.descricao.message}</span>}
       </label>
@@ -109,7 +109,7 @@ export function QuestForm({ mode, questId }: QuestFormProps) {
           {...register('xp')}
           type="number"
           min={0}
-          className="rounded border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+          className="rounded border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
         />
         {errors.xp && <span className="text-xs text-red-600">{errors.xp.message}</span>}
       </label>
@@ -134,7 +134,7 @@ export function QuestForm({ mode, questId }: QuestFormProps) {
         <button
           type="button"
           onClick={() => router.push('/')}
-          className="rounded border border-zinc-300 bg-white px-4 py-2 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900"
+          className="rounded border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800"
         >
           Cancelar
         </button>
