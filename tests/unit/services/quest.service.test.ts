@@ -1,20 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { Prisma, type Quest } from '@prisma/client';
-import { prisma } from '../../../src/lib/prisma.js';
-import { questService } from '../../../src/services/quest.service.js';
+import type { Quest } from '@prisma/client';
+import { QuestService } from '../../../src/services/quest.service.js';
 import { ResourceNotFoundError } from '../../../src/errors/resource-not-found.error.js';
+import type { QuestRepository } from '../../../src/repositories/quest.repository.js';
 
-vi.mock('../../../src/lib/prisma.js', () => ({
-  prisma: {
-    quest: {
-      create: vi.fn(),
-      findMany: vi.fn(),
-      findUnique: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-    },
-  },
-}));
+const mockRepository: QuestRepository = {
+  create: vi.fn(),
+  findAll: vi.fn(),
+  findById: vi.fn(),
+  update: vi.fn(),
+  delete: vi.fn(),
+};
 
 function makeQuest(overrides: Partial<Quest> = {}): Quest {
   return {
@@ -29,35 +25,29 @@ function makeQuest(overrides: Partial<Quest> = {}): Quest {
   };
 }
 
-function makePrismaP2025(): Prisma.PrismaClientKnownRequestError {
-  return new Prisma.PrismaClientKnownRequestError('Record to update not found.', {
-    code: 'P2025',
-    clientVersion: '6.19.3',
-  });
-}
-
 describe('QuestService', () => {
+  let questService: QuestService;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    questService = new QuestService(mockRepository);
   });
 
   describe('create', () => {
-    it('deve chamar prisma.quest.create com os campos corretos', async () => {
+    it('deve chamar repository.create com os campos corretos', async () => {
       const input = { titulo: 'Matar dragão', xp: 100 };
       const created = makeQuest({ id: 'uuid-1', titulo: input.titulo, xp: input.xp });
-      vi.mocked(prisma.quest.create).mockResolvedValue(created);
+      vi.mocked(mockRepository.create).mockResolvedValue(created);
 
       const result = await questService.create(input);
 
-      expect(prisma.quest.create).toHaveBeenCalledWith({
-        data: { titulo: input.titulo, descricao: undefined, xp: input.xp },
-      });
+      expect(mockRepository.create).toHaveBeenCalledWith(input);
       expect(result).toEqual(created);
     });
 
-    it('deve propagar erro do Prisma', async () => {
+    it('deve propagar erro do repository', async () => {
       const error = new Error('DB offline');
-      vi.mocked(prisma.quest.create).mockRejectedValue(error);
+      vi.mocked(mockRepository.create).mockRejectedValue(error);
 
       await expect(
         questService.create({ titulo: 'Teste', xp: 10 })
@@ -72,24 +62,22 @@ describe('QuestService', () => {
         descricao: input.descricao,
         xp: input.xp,
       });
-      vi.mocked(prisma.quest.create).mockResolvedValue(created);
+      vi.mocked(mockRepository.create).mockResolvedValue(created);
 
       const result = await questService.create(input);
 
-      expect(prisma.quest.create).toHaveBeenCalledWith({
-        data: { titulo: input.titulo, descricao: input.descricao, xp: input.xp },
-      });
+      expect(mockRepository.create).toHaveBeenCalledWith(input);
       expect(result.descricao).toBe(input.descricao);
     });
   });
 
   describe('findAll', () => {
-    it('deve chamar prisma.quest.findMany', async () => {
-      vi.mocked(prisma.quest.findMany).mockResolvedValue([]);
+    it('deve chamar repository.findAll', async () => {
+      vi.mocked(mockRepository.findAll).mockResolvedValue([]);
 
       const result = await questService.findAll();
 
-      expect(prisma.quest.findMany).toHaveBeenCalledWith();
+      expect(mockRepository.findAll).toHaveBeenCalled();
       expect(result).toEqual([]);
     });
 
@@ -98,7 +86,7 @@ describe('QuestService', () => {
         makeQuest({ id: 'uuid-1', titulo: 'Quest 1' }),
         makeQuest({ id: 'uuid-2', titulo: 'Quest 2' }),
       ];
-      vi.mocked(prisma.quest.findMany).mockResolvedValue(quests);
+      vi.mocked(mockRepository.findAll).mockResolvedValue(quests);
 
       const result = await questService.findAll();
 
@@ -107,18 +95,18 @@ describe('QuestService', () => {
   });
 
   describe('findById', () => {
-    it('deve chamar prisma.quest.findUnique com o id correto', async () => {
+    it('deve chamar repository.findById com o id correto', async () => {
       const quest = makeQuest({ id: 'uuid-1', titulo: 'Quest 1' });
-      vi.mocked(prisma.quest.findUnique).mockResolvedValue(quest);
+      vi.mocked(mockRepository.findById).mockResolvedValue(quest);
 
       const result = await questService.findById('uuid-1');
 
-      expect(prisma.quest.findUnique).toHaveBeenCalledWith({ where: { id: 'uuid-1' } });
+      expect(mockRepository.findById).toHaveBeenCalledWith('uuid-1');
       expect(result).toEqual(quest);
     });
 
-    it('deve lançar ResourceNotFoundError quando não encontrada', async () => {
-      vi.mocked(prisma.quest.findUnique).mockResolvedValue(null);
+    it('deve lançar ResourceNotFoundError quando repository retorna null', async () => {
+      vi.mocked(mockRepository.findById).mockResolvedValue(null);
 
       await expect(questService.findById('uuid-inexistente')).rejects.toBeInstanceOf(
         ResourceNotFoundError
@@ -127,32 +115,31 @@ describe('QuestService', () => {
   });
 
   describe('update', () => {
-    it('deve chamar prisma.quest.update com where e data', async () => {
+    it('deve chamar repository.update com id e data', async () => {
       const id = 'uuid-1';
       const input = { titulo: 'Novo título', xp: 200 };
       const updated = makeQuest({ id, titulo: input.titulo, xp: input.xp });
-      vi.mocked(prisma.quest.update).mockResolvedValue(updated);
+      vi.mocked(mockRepository.update).mockResolvedValue(updated);
 
       const result = await questService.update(id, input);
 
-      expect(prisma.quest.update).toHaveBeenCalledWith({
-        where: { id },
-        data: input,
-      });
+      expect(mockRepository.update).toHaveBeenCalledWith(id, input);
       expect(result).toEqual(updated);
     });
 
-    it('deve lançar ResourceNotFoundError quando Prisma devolve P2025', async () => {
-      vi.mocked(prisma.quest.update).mockRejectedValue(makePrismaP2025());
+    it('deve propagar ResourceNotFoundError do repository', async () => {
+      vi.mocked(mockRepository.update).mockRejectedValue(
+        new ResourceNotFoundError('Quest', 'uuid-inexistente')
+      );
 
       await expect(
         questService.update('uuid-inexistente', { titulo: 'X' })
       ).rejects.toBeInstanceOf(ResourceNotFoundError);
     });
 
-    it('deve propagar outros erros do Prisma', async () => {
+    it('deve propagar outros erros do repository', async () => {
       const error = new Error('DB offline');
-      vi.mocked(prisma.quest.update).mockRejectedValue(error);
+      vi.mocked(mockRepository.update).mockRejectedValue(error);
 
       await expect(
         questService.update('uuid-1', { titulo: 'X' })
@@ -161,25 +148,27 @@ describe('QuestService', () => {
   });
 
   describe('delete', () => {
-    it('deve chamar prisma.quest.delete com where: { id }', async () => {
-      vi.mocked(prisma.quest.delete).mockResolvedValue(makeQuest({ id: 'uuid-1' }));
+    it('deve chamar repository.delete com id', async () => {
+      vi.mocked(mockRepository.delete).mockResolvedValue();
 
       await questService.delete('uuid-1');
 
-      expect(prisma.quest.delete).toHaveBeenCalledWith({ where: { id: 'uuid-1' } });
+      expect(mockRepository.delete).toHaveBeenCalledWith('uuid-1');
     });
 
-    it('deve lançar ResourceNotFoundError quando Prisma devolve P2025', async () => {
-      vi.mocked(prisma.quest.delete).mockRejectedValue(makePrismaP2025());
+    it('deve propagar ResourceNotFoundError do repository', async () => {
+      vi.mocked(mockRepository.delete).mockRejectedValue(
+        new ResourceNotFoundError('Quest', 'uuid-inexistente')
+      );
 
       await expect(questService.delete('uuid-inexistente')).rejects.toBeInstanceOf(
         ResourceNotFoundError
       );
     });
 
-    it('deve propagar outros erros do Prisma', async () => {
+    it('deve propagar outros erros do repository', async () => {
       const error = new Error('DB offline');
-      vi.mocked(prisma.quest.delete).mockRejectedValue(error);
+      vi.mocked(mockRepository.delete).mockRejectedValue(error);
 
       await expect(questService.delete('uuid-1')).rejects.toThrow('DB offline');
     });
