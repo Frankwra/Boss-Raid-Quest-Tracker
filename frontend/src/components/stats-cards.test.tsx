@@ -58,4 +58,13 @@ describe('<StatsCards />', () => {
     expect(screen.getAllByText('0')).toHaveLength(5);
     expect(screen.getByText('0%')).toBeInTheDocument();
   });
+
+  it('cada card tem variante dark para texto', () => {
+    render(<StatsCards stats={stats} />);
+    const labels = ['Total de quests', 'Concluídas', 'Pendentes', 'XP total', 'XP ganho', 'Progresso'];
+    for (const label of labels) {
+      const card = screen.getByText(label).parentElement!;
+      expect(card.className).toMatch(/dark:text-/);
+    }
+  });
 });
