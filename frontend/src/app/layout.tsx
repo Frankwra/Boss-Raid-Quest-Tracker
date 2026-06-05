@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Toaster } from 'sonner';
+import { ThemeToggle } from '@/components/theme-toggle';
+import { themeInitScript } from '@/lib/theme';
 import './globals.css';
 import { Providers } from './providers';
 
@@ -23,10 +25,17 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html
       lang="pt-BR"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="min-h-full flex flex-col bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
         <Providers>
+          <div className="fixed right-4 top-4 z-50">
+            <ThemeToggle />
+          </div>
           {children}
           <Toaster richColors position="top-right" />
         </Providers>

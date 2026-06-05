@@ -2,6 +2,7 @@ import { render, type RenderOptions } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import type { ReactElement, ReactNode } from 'react';
+import { ThemeProvider } from '@/components/theme-provider';
 import type { Quest } from '@/types/quest';
 
 export function makeQuest(overrides: Partial<Quest> = {}): Quest {
@@ -35,10 +36,12 @@ interface ProvidersProps {
 export function TestProviders({ children, client }: ProvidersProps) {
   const queryClient = client ?? createTestQueryClient();
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-      <Toaster />
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        {children}
+        <Toaster />
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 
