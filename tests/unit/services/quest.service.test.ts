@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { Quest } from '@prisma/client';
+import { Prisma, type Quest } from '@prisma/client';
 import { prisma } from '../../../src/lib/prisma.js';
 import { questService } from '../../../src/services/quest.service.js';
 import { ResourceNotFoundError } from '../../../src/errors/resource-not-found.error.js';
@@ -10,6 +10,8 @@ vi.mock('../../../src/lib/prisma.js', () => ({
       create: vi.fn(),
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
     },
   },
 }));
@@ -25,6 +27,13 @@ function makeQuest(overrides: Partial<Quest> = {}): Quest {
     atualizadoEm: new Date(),
     ...overrides,
   };
+}
+
+function makePrismaP2025(): Prisma.PrismaClientKnownRequestError {
+  return new Prisma.PrismaClientKnownRequestError('Record to update not found.', {
+    code: 'P2025',
+    clientVersion: '6.19.3',
+  });
 }
 
 describe('QuestService', () => {
@@ -114,6 +123,65 @@ describe('QuestService', () => {
       await expect(questService.findById('uuid-inexistente')).rejects.toBeInstanceOf(
         ResourceNotFoundError
       );
+    });
+  });
+
+  describe('update', () => {
+    it('deve chamar prisma.quest.update com where e data', async () => {
+      const id = 'uuid-1';
+      const input = { titulo: 'Novo título', xp: 200 };
+      const updated = makeQuest({ id, titulo: input.titulo, xp: input.xp });
+      vi.mocked(prisma.quest.update).mockResolvedValue(updated);
+
+      const result = await questService.update(id, input);
+
+      expect(prisma.quest.update).toHaveBeenCalledWith({
+        where: { id },
+        data: input,
+      });
+      expect(result).toEqual(updated);
+    });
+
+    it('deve lançar ResourceNotFoundError quando Prisma devolve P2025', async () => {
+      vi.mocked(prisma.quest.update).mockRejectedValue(makePrismaP2025());
+
+      await expect(
+        questService.update('uuid-inexistente', { titulo: 'X' })
+      ).rejects.toBeInstanceOf(ResourceNotFoundError);
+    });
+
+    it('deve propagar outros erros do Prisma', async () => {
+      const error = new Error('DB offline');
+      vi.mocked(prisma.quest.update).mockRejectedValue(error);
+
+      await expect(
+        questService.update('uuid-1', { titulo: 'X' })
+      ).rejects.toThrow('DB offline');
+    });
+  });
+
+  describe('delete', () => {
+    it('deve chamar prisma.quest.delete com where: { id }', async () => {
+      vi.mocked(prisma.quest.delete).mockResolvedValue(makeQuest({ id: 'uuid-1' }));
+
+      await questService.delete('uuid-1');
+
+      expect(prisma.quest.delete).toHaveBeenCalledWith({ where: { id: 'uuid-1' } });
+    });
+
+    it('deve lançar ResourceNotFoundError quando Prisma devolve P2025', async () => {
+      vi.mocked(prisma.quest.delete).mockRejectedValue(makePrismaP2025());
+
+      await expect(questService.delete('uuid-inexistente')).rejects.toBeInstanceOf(
+        ResourceNotFoundError
+      );
+    });
+
+    it('deve propagar outros erros do Prisma', async () => {
+      const error = new Error('DB offline');
+      vi.mocked(prisma.quest.delete).mockRejectedValue(error);
+
+      await expect(questService.delete('uuid-1')).rejects.toThrow('DB offline');
     });
   });
 });
