@@ -2,6 +2,8 @@
 
 Tracker de quests para raids com **Fastify + Prisma + PostgreSQL** no backend e **Next.js 16 + React 19 + Tailwind 4** no frontend. Desenvolvido com TDD, Clean Architecture, dark mode, paginacao e testes E2E com Playwright.
 
+![Dashboard light mode](frontend/docs/screenshots/01-home.png)
+
 ## Indice
 
 - [Stack](#stack)
@@ -16,6 +18,40 @@ Tracker de quests para raids com **Fastify + Prisma + PostgreSQL** no backend e 
 - [Convencoes](#convencoes)
 - [Endpoints da API](#endpoints-da-api)
 - [Tarefas pendentes / ideias futuras](#tarefas-pendentes--ideias-futuras)
+
+## Screenshots
+
+### Dashboard (light mode)
+
+![Dashboard](frontend/docs/screenshots/01-home.png)
+
+Dashboard com cards de estatisticas (Total / Concluidas / Pendentes / XP Total / XP Ganho / Progresso), busca + filtro de status, lista de quests com acoes (Marcar concluida, Editar, Deletar) e paginacao.
+
+### Criar quest
+
+| Formulario vazio | Preenchido |
+| --- | --- |
+| ![Nova quest vazia](frontend/docs/screenshots/02-nova-vazia.png) | ![Nova quest preenchida](frontend/docs/screenshots/03-nova-preenchida.png) |
+
+### Quest criada (toast + stats atualizadas)
+
+![Quest criada](frontend/docs/screenshots/04-criada.png)
+
+Note o toast `Quest criada` no canto superior direito, o card `TOTAL DE QUESTS` saltando de 8 para 9 e a nova quest `Derrotar o dragao anciao` na lista.
+
+### Marcar como concluida
+
+![Quest concluida](frontend/docs/screenshots/05-concluida.png)
+
+Botao muda de `Marcar concluida` para `Concluida`, card `CONCLUIDAS` sobe para 2 e `XP GANHO` reflete a nova quest (2500).
+
+### Cards de estatisticas (detalhe)
+
+![Stats](frontend/docs/screenshots/06-stats.png)
+
+### Dark mode
+
+![Dark mode](frontend/docs/screenshots/07-dark.png)
 
 ## Stack
 
