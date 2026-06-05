@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { questsApi } from '@/lib/api';
 
 export function DeleteQuestButton({ id, titulo }: { id: string; titulo: string }) {
@@ -8,7 +9,11 @@ export function DeleteQuestButton({ id, titulo }: { id: string; titulo: string }
 
   const mutation = useMutation({
     mutationFn: () => questsApi.delete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['quests'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['quests'] });
+      toast.success(`"${titulo}" deletada`);
+    },
+    onError: (error) => toast.error(`Erro ao deletar: ${error.message}`),
   });
 
   function handleClick() {

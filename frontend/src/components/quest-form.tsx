@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { questsApi } from '@/lib/api';
 import { createQuestSchema, updateQuestSchema } from '@/lib/schemas';
 
@@ -67,8 +68,10 @@ export function QuestForm({ mode, questId }: QuestFormProps) {
           }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['quests'] });
+      toast.success(isEdit ? 'Quest atualizada' : 'Quest criada');
       router.push('/');
     },
+    onError: (error) => toast.error(`Erro: ${error.message}`),
   });
 
   if (isEdit && isLoading) {
