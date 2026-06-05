@@ -8,13 +8,14 @@ generator client {
 }
 
 model Quest {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   titulo      String
   descricao   String?
-  xp          Int      @default(0)
-  concluida   Boolean  @default(false)
-  criadoEm    DateTime @default(now())
+  xp          Int       @default(0)
+  concluida   Boolean   @default(false)
+  criadoEm    DateTime  @default(now())
   atualizadoEm DateTime @updatedAt
+  deletadoEm  DateTime?
 
   @@map("quests")
 }
