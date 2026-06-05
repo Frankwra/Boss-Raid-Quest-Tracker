@@ -10,6 +10,7 @@ const baseValidEnv = {
   POSTGRES_PORT: '5432',
   PORT: '3333',
   NODE_ENV: 'development',
+  FRONTEND_URL: 'http://localhost:3000',
 };
 
 async function loadEnv(env: NodeJS.ProcessEnv, excludeFromOriginal: string[] = []) {
@@ -43,9 +44,10 @@ describe('env schema', () => {
     expect(env.POSTGRES_PORT).toBe('5432');
     expect(env.PORT).toBe('3333');
     expect(env.NODE_ENV).toBe('development');
+    expect(env.FRONTEND_URL).toBe('http://localhost:3000');
   });
 
-  it('deve aplicar defaults para PORT, POSTGRES_PORT e NODE_ENV', async () => {
+  it('deve aplicar defaults para PORT, POSTGRES_PORT, NODE_ENV e FRONTEND_URL', async () => {
     const { env } = await loadEnv(
       {
         DATABASE_URL: baseValidEnv.DATABASE_URL,
@@ -53,11 +55,12 @@ describe('env schema', () => {
         POSTGRES_PASSWORD: baseValidEnv.POSTGRES_PASSWORD,
         POSTGRES_DB: baseValidEnv.POSTGRES_DB,
       },
-      ['PORT', 'POSTGRES_PORT', 'NODE_ENV']
+      ['PORT', 'POSTGRES_PORT', 'NODE_ENV', 'FRONTEND_URL']
     );
     expect(env.PORT).toBe('3333');
     expect(env.POSTGRES_PORT).toBe('5432');
     expect(env.NODE_ENV).toBe('development');
+    expect(env.FRONTEND_URL).toBe('http://localhost:3000');
   });
 
   it('deve falhar se DATABASE_URL ausente', async () => {

@@ -19,6 +19,10 @@ const envSchema = z.object({
     .regex(/^\d+$/, 'PORT deve ser numérico')
     .default('3333'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  FRONTEND_URL: z
+    .string()
+    .url('FRONTEND_URL deve ser uma URL válida')
+    .default('http://localhost:3000'),
 });
 
 export const env = envSchema.parse(process.env);
