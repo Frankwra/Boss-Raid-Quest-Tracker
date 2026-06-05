@@ -112,4 +112,11 @@ describe('<QuestList />', () => {
     const list = container.querySelector('ul');
     expect(list?.children).toHaveLength(0);
   });
+
+  it('titulo da quest tem cor explicita para dark mode', () => {
+    const quests = [makeQuest({ titulo: 'Visivel no escuro' })];
+    renderWithProviders(<QuestList quests={quests} />);
+    const title = screen.getByText('Visivel no escuro');
+    expect(title.className).toMatch(/dark:text-/);
+  });
 });

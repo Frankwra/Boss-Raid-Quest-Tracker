@@ -85,4 +85,20 @@ describe('<QuestFilters />', () => {
     expect(screen.getByRole('option', { name: 'Concluídas' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Pendentes' })).toBeInTheDocument();
   });
+
+  it('input e select tem cor explicita para dark mode', () => {
+    render(
+      <QuestFilters
+        search=""
+        status="todas"
+        onSearchChange={onSearchChange}
+        onStatusChange={onStatusChange}
+      />
+    );
+
+    const input = screen.getByPlaceholderText(/buscar por títul/i);
+    const select = screen.getByRole('combobox');
+    expect(input.className).toMatch(/dark:text-/);
+    expect(select.className).toMatch(/dark:text-/);
+  });
 });
