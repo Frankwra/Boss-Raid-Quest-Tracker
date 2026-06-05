@@ -11,6 +11,19 @@ vi.mock('../../../src/lib/prisma.js', () => ({
   },
 }));
 
+function makeQuest(overrides: Partial<Quest> = {}): Quest {
+  return {
+    id: 'uuid-default',
+    titulo: 'Default',
+    descricao: null,
+    xp: 0,
+    concluida: false,
+    criadoEm: new Date(),
+    atualizadoEm: new Date(),
+    ...overrides,
+  };
+}
+
 describe('QuestService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -19,15 +32,7 @@ describe('QuestService', () => {
   describe('create', () => {
     it('deve chamar prisma.quest.create com os campos corretos', async () => {
       const input = { titulo: 'Matar dragão', xp: 100 };
-      const created: Quest = {
-        id: 'uuid-1',
-        titulo: input.titulo,
-        descricao: null,
-        xp: input.xp,
-        concluida: false,
-        criadoEm: new Date(),
-        atualizadoEm: new Date(),
-      };
+      const created = makeQuest({ id: 'uuid-1', titulo: input.titulo, xp: input.xp });
       vi.mocked(prisma.quest.create).mockResolvedValue(created);
 
       const result = await questService.create(input);
@@ -49,15 +54,12 @@ describe('QuestService', () => {
 
     it('deve aceitar descricao opcional', async () => {
       const input = { titulo: 'Side quest', descricao: 'Coletar ervas', xp: 5 };
-      const created: Quest = {
+      const created = makeQuest({
         id: 'uuid-2',
         titulo: input.titulo,
         descricao: input.descricao,
         xp: input.xp,
-        concluida: false,
-        criadoEm: new Date(),
-        atualizadoEm: new Date(),
-      };
+      });
       vi.mocked(prisma.quest.create).mockResolvedValue(created);
 
       const result = await questService.create(input);
