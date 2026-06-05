@@ -16,8 +16,13 @@ export class QuestRepositoryPrisma implements QuestRepository {
     return prisma.quest.create({ data });
   }
 
-  async findAll() {
-    return prisma.quest.findMany({ where: { deletadoEm: null } });
+  async findPaginated({ skip, take }: { skip: number; take: number }) {
+    const where = { deletadoEm: null };
+    const [data, total] = await Promise.all([
+      prisma.quest.findMany({ where, skip, take }),
+      prisma.quest.count({ where }),
+    ]);
+    return { data, total };
   }
 
   async findById(id: string) {

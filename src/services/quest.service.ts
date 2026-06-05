@@ -3,6 +3,7 @@ import { ResourceNotFoundError } from '../errors/resource-not-found.error.js';
 import type { CreateQuestBody, UpdateQuestBody } from '../schemas/quest.schema.js';
 import type { QuestRepository } from '../repositories/quest.repository.js';
 import { QuestRepositoryPrisma } from '../repositories/prisma/quest.repository.prisma.js';
+import { buildPagination, type Paginated } from '../schemas/pagination.schema.js';
 
 export class QuestService {
   private readonly repository: QuestRepository;
@@ -15,8 +16,13 @@ export class QuestService {
     return this.repository.create(data);
   }
 
-  async findAll(): Promise<Quest[]> {
-    return this.repository.findAll();
+  async findAll(params: { page: number; limit: number }): Promise<Paginated<Quest>> {
+    const { page, limit } = params;
+    const { data, total } = await this.repository.findPaginated({
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+    return buildPagination(data, total, page, limit);
   }
 
   async findById(id: string): Promise<Quest> {

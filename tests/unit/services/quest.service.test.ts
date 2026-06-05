@@ -6,7 +6,7 @@ import type { QuestRepository } from '../../../src/repositories/quest.repository
 
 const mockRepository: QuestRepository = {
   create: vi.fn(),
-  findAll: vi.fn(),
+  findPaginated: vi.fn(),
   findById: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
@@ -71,26 +71,60 @@ describe('QuestService', () => {
     });
   });
 
-  describe('findAll', () => {
-    it('deve chamar repository.findAll', async () => {
-      vi.mocked(mockRepository.findAll).mockResolvedValue([]);
+  describe('findAll (paginada)', () => {
+    it('deve calcular skip=(page-1)*limit e chamar repository.findPaginated', async () => {
+      vi.mocked(mockRepository.findPaginated).mockResolvedValue({ data: [], total: 0 });
 
-      const result = await questService.findAll();
+      const result = await questService.findAll({ page: 3, limit: 10 });
 
-      expect(mockRepository.findAll).toHaveBeenCalled();
-      expect(result).toEqual([]);
+      expect(mockRepository.findPaginated).toHaveBeenCalledWith({ skip: 20, take: 10 });
+      expect(result.data).toEqual([]);
+      expect(result.pagination).toEqual({
+        page: 3,
+        limit: 10,
+        total: 0,
+        totalPages: 0,
+        hasNext: false,
+        hasPrev: true,
+      });
     });
 
-    it('deve retornar lista de quests quando há registros', async () => {
+    it('deve retornar envelope com totalPages e hasNext/hasPrev corretos', async () => {
       const quests = [
-        makeQuest({ id: 'uuid-1', titulo: 'Quest 1' }),
-        makeQuest({ id: 'uuid-2', titulo: 'Quest 2' }),
+        makeQuest({ id: 'uuid-1' }),
+        makeQuest({ id: 'uuid-2' }),
       ];
-      vi.mocked(mockRepository.findAll).mockResolvedValue(quests);
+      vi.mocked(mockRepository.findPaginated).mockResolvedValue({ data: quests, total: 25 });
 
-      const result = await questService.findAll();
+      const result = await questService.findAll({ page: 2, limit: 10 });
 
-      expect(result).toEqual(quests);
+      expect(result.pagination).toEqual({
+        page: 2,
+        limit: 10,
+        total: 25,
+        totalPages: 3,
+        hasNext: true,
+        hasPrev: true,
+      });
+      expect(result.data).toHaveLength(2);
+    });
+
+    it('deve marcar hasNext=false na ultima pagina', async () => {
+      vi.mocked(mockRepository.findPaginated).mockResolvedValue({ data: [], total: 25 });
+
+      const result = await questService.findAll({ page: 3, limit: 10 });
+
+      expect(result.pagination.hasNext).toBe(false);
+      expect(result.pagination.hasPrev).toBe(true);
+    });
+
+    it('deve marcar hasPrev=false na primeira pagina', async () => {
+      vi.mocked(mockRepository.findPaginated).mockResolvedValue({ data: [], total: 25 });
+
+      const result = await questService.findAll({ page: 1, limit: 10 });
+
+      expect(result.pagination.hasPrev).toBe(false);
+      expect(result.pagination.hasNext).toBe(true);
     });
   });
 

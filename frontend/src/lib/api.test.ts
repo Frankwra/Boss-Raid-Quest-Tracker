@@ -68,4 +68,43 @@ describe('questsApi', () => {
       await expect(questsApi.delete('q-1')).resolves.toBeUndefined();
     });
   });
+
+  describe('findAll (paginada)', () => {
+    it('sem params chama /api/quests sem query string', async () => {
+      mockFetch.mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: [], pagination: {} }), { status: 200 })
+      );
+
+      await questsApi.findAll();
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toMatch(/\/api\/quests$/);
+    });
+
+    it('com page e limit monta query string', async () => {
+      mockFetch.mockResolvedValueOnce(
+        new Response(JSON.stringify({ data: [], pagination: {} }), { status: 200 })
+      );
+
+      await questsApi.findAll({ page: 2, limit: 25 });
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toContain('page=2');
+      expect(url).toContain('limit=25');
+    });
+
+    it('retorna envelope paginado', async () => {
+      const envelope = {
+        data: [{ id: 'q-1' }],
+        pagination: { page: 1, limit: 10, total: 1, totalPages: 1, hasNext: false, hasPrev: false },
+      };
+      mockFetch.mockResolvedValueOnce(
+        new Response(JSON.stringify(envelope), { status: 200 })
+      );
+
+      const result = await questsApi.findAll();
+
+      expect(result).toEqual(envelope);
+    });
+  });
 });
