@@ -6,6 +6,7 @@ import {
   updateQuestBodySchema,
   type UpdateQuestBody,
 } from '../schemas/quest.schema.js';
+import { questIdParamSchema } from '../schemas/quest-id.schema.js';
 import { questService } from '../services/quest.service.js';
 import { ResourceNotFoundError } from '../errors/resource-not-found.error.js';
 
@@ -33,9 +34,16 @@ export async function questsRoutes(app: FastifyInstance) {
 
   app.get<{ Params: { id: string } }>('/api/quests/:id', async (request, reply) => {
     try {
-      const quest = await questService.findById(request.params.id);
+      const { id } = questIdParamSchema.parse(request.params);
+      const quest = await questService.findById(id);
       return quest;
     } catch (error) {
+      if (error instanceof ZodError) {
+        return reply.status(400).send({
+          message: 'Dados inválidos',
+          issues: error.issues,
+        });
+      }
       if (error instanceof ResourceNotFoundError) {
         return reply.status(404).send({
           message: error.message,
@@ -47,8 +55,9 @@ export async function questsRoutes(app: FastifyInstance) {
 
   app.patch<{ Params: { id: string } }>('/api/quests/:id', async (request, reply) => {
     try {
+      const { id } = questIdParamSchema.parse(request.params);
       const data: UpdateQuestBody = updateQuestBodySchema.parse(request.body);
-      const quest = await questService.update(request.params.id, data);
+      const quest = await questService.update(id, data);
       return quest;
     } catch (error) {
       if (error instanceof ZodError) {
@@ -66,9 +75,16 @@ export async function questsRoutes(app: FastifyInstance) {
 
   app.delete<{ Params: { id: string } }>('/api/quests/:id', async (request, reply) => {
     try {
-      await questService.delete(request.params.id);
+      const { id } = questIdParamSchema.parse(request.params);
+      await questService.delete(id);
       return reply.status(204).send();
     } catch (error) {
+      if (error instanceof ZodError) {
+        return reply.status(400).send({
+          message: 'Dados inválidos',
+          issues: error.issues,
+        });
+      }
       if (error instanceof ResourceNotFoundError) {
         return reply.status(404).send({ message: error.message });
       }
