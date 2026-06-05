@@ -3,6 +3,20 @@ import type { CreateQuestInput, UpdateQuestInput } from './schemas';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3333';
 
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
+export interface PaginatedQuests {
+  data: Quest[];
+  pagination: Pagination;
+}
+
 class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
@@ -31,7 +45,13 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 }
 
 export const questsApi = {
-  findAll: () => request<Quest[]>('/api/quests'),
+  findAll: (params?: { page?: number; limit?: number }) => {
+    const search = new URLSearchParams();
+    if (params?.page) search.set('page', String(params.page));
+    if (params?.limit) search.set('limit', String(params.limit));
+    const qs = search.toString();
+    return request<PaginatedQuests>(`/api/quests${qs ? `?${qs}` : ''}`);
+  },
   findById: (id: string) => request<Quest>(`/api/quests/${id}`),
   create: (data: CreateQuestInput) =>
     request<Quest>('/api/quests', { method: 'POST', body: JSON.stringify(data) }),
