@@ -1,17 +1,17 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
+import type { Quest } from '@/types/quest';
 import { questsApi } from '@/lib/api';
 import { DeleteQuestButton } from './delete-quest-button';
 
-export function QuestList() {
-  const queryClient = useQueryClient();
+interface QuestListProps {
+  quests: Quest[];
+}
 
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['quests'],
-    queryFn: questsApi.findAll,
-  });
+export function QuestList({ quests }: QuestListProps) {
+  const queryClient = useQueryClient();
 
   const toggleMutation = useMutation({
     mutationFn: ({ id, concluida }: { id: string; concluida: boolean }) =>
@@ -19,23 +19,9 @@ export function QuestList() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['quests'] }),
   });
 
-  if (isLoading) return <p className="text-zinc-500">Carregando quests...</p>;
-  if (isError) return <p className="text-red-600">Erro ao carregar: {error.message}</p>;
-  if (!data || data.length === 0) {
-    return (
-      <p className="text-zinc-500">
-        Nenhuma quest cadastrada.{' '}
-        <Link href="/nova" className="text-blue-600 hover:underline">
-          Criar a primeira
-        </Link>
-        .
-      </p>
-    );
-  }
-
   return (
     <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {data.map((quest) => (
+      {quests.map((quest) => (
         <li
           key={quest.id}
           className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
