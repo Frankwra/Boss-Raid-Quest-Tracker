@@ -3,15 +3,13 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { questsRoutes } from './routes/quests.routes.js';
 import { env } from './config/env.js';
+import { buildCorsOptions } from './config/cors.js';
 
 const app = Fastify({
   logger: true,
 });
 
-await app.register(cors, {
-  origin: env.FRONTEND_URL,
-  credentials: true,
-});
+await app.register(cors, buildCorsOptions(env.FRONTEND_URL));
 
 app.register(questsRoutes);
 
