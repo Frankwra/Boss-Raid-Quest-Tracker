@@ -17,16 +17,16 @@ export class QuestRepositoryPrisma implements QuestRepository {
   }
 
   async findAll() {
-    return prisma.quest.findMany();
+    return prisma.quest.findMany({ where: { deletadoEm: null } });
   }
 
   async findById(id: string) {
-    return prisma.quest.findUnique({ where: { id } });
+    return prisma.quest.findUnique({ where: { id, deletadoEm: null } });
   }
 
   async update(id: string, data: UpdateQuestData) {
     try {
-      return await prisma.quest.update({ where: { id }, data });
+      return await prisma.quest.update({ where: { id, deletadoEm: null }, data });
     } catch (error) {
       if (isRecordNotFound(error)) {
         throw new ResourceNotFoundError('Quest', id);
@@ -37,7 +37,10 @@ export class QuestRepositoryPrisma implements QuestRepository {
 
   async delete(id: string): Promise<void> {
     try {
-      await prisma.quest.delete({ where: { id } });
+      await prisma.quest.update({
+        where: { id, deletadoEm: null },
+        data: { deletadoEm: new Date() },
+      });
     } catch (error) {
       if (isRecordNotFound(error)) {
         throw new ResourceNotFoundError('Quest', id);
