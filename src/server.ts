@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import Fastify from 'fastify';
 import { questsRoutes } from './routes/quests.routes.js';
 import { env } from './config/env.js';
