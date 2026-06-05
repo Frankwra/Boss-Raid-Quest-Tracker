@@ -7,3 +7,16 @@ export const createQuestBodySchema = z.object({
 });
 
 export type CreateQuestBody = z.infer<typeof createQuestBodySchema>;
+
+export const updateQuestBodySchema = z
+  .object({
+    titulo: z.string().min(1).optional(),
+    descricao: z.string().optional(),
+    xp: z.number().int().min(0).optional(),
+    concluida: z.boolean().optional(),
+  })
+  .refine((data) => Object.keys(data).length > 0, {
+    message: 'Pelo menos um campo deve ser fornecido',
+  });
+
+export type UpdateQuestBody = z.infer<typeof updateQuestBodySchema>;

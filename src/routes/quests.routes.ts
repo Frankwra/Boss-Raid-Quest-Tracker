@@ -1,6 +1,11 @@
 import type { FastifyInstance } from 'fastify';
 import { ZodError } from 'zod';
-import { createQuestBodySchema, type CreateQuestBody } from '../schemas/quest.schema.js';
+import {
+  createQuestBodySchema,
+  type CreateQuestBody,
+  updateQuestBodySchema,
+  type UpdateQuestBody,
+} from '../schemas/quest.schema.js';
 import { questService } from '../services/quest.service.js';
 import { ResourceNotFoundError } from '../errors/resource-not-found.error.js';
 
@@ -35,6 +40,37 @@ export async function questsRoutes(app: FastifyInstance) {
         return reply.status(404).send({
           message: error.message,
         });
+      }
+      throw error;
+    }
+  });
+
+  app.patch<{ Params: { id: string } }>('/api/quests/:id', async (request, reply) => {
+    try {
+      const data: UpdateQuestBody = updateQuestBodySchema.parse(request.body);
+      const quest = await questService.update(request.params.id, data);
+      return quest;
+    } catch (error) {
+      if (error instanceof ZodError) {
+        return reply.status(400).send({
+          message: 'Dados inválidos',
+          issues: error.issues,
+        });
+      }
+      if (error instanceof ResourceNotFoundError) {
+        return reply.status(404).send({ message: error.message });
+      }
+      throw error;
+    }
+  });
+
+  app.delete<{ Params: { id: string } }>('/api/quests/:id', async (request, reply) => {
+    try {
+      await questService.delete(request.params.id);
+      return reply.status(204).send();
+    } catch (error) {
+      if (error instanceof ResourceNotFoundError) {
+        return reply.status(404).send({ message: error.message });
       }
       throw error;
     }
