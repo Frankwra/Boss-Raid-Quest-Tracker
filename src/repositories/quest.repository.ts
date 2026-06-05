@@ -14,9 +14,19 @@ export interface UpdateQuestData {
   concluida?: boolean;
 }
 
+export interface FindPaginatedParams {
+  skip: number;
+  take: number;
+}
+
+export interface PaginatedResult<T> {
+  data: T[];
+  total: number;
+}
+
 export interface QuestRepository {
   create(data: CreateQuestData): Promise<Quest>;
-  findAll(): Promise<Quest[]>;
+  findPaginated(params: FindPaginatedParams): Promise<PaginatedResult<Quest>>;
   findById(id: string): Promise<Quest | null>;
   update(id: string, data: UpdateQuestData): Promise<Quest>;
   delete(id: string): Promise<void>;

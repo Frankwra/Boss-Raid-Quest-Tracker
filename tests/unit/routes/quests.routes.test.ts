@@ -49,21 +49,51 @@ describe('questsRoutes', () => {
   });
 
   describe('GET /api/quests', () => {
-    it('retorna 200 com lista de quests', async () => {
-      mockService.findAll.mockResolvedValue([makeQuest(), makeQuest({ id: OTHER_ID })]);
+    it('retorna 200 com envelope paginado e defaults page=1 limit=10', async () => {
+      mockService.findAll.mockResolvedValue({
+        data: [makeQuest(), makeQuest({ id: OTHER_ID })],
+        pagination: { page: 1, limit: 10, total: 2, totalPages: 1, hasNext: false, hasPrev: false },
+      });
       const res = await app.inject({ method: 'GET', url: '/api/quests' });
 
       expect(res.statusCode).toBe(200);
-      expect(res.json()).toHaveLength(2);
-      expect(mockService.findAll).toHaveBeenCalledOnce();
+      const body = res.json();
+      expect(body.data).toHaveLength(2);
+      expect(body.pagination).toEqual({
+        page: 1,
+        limit: 10,
+        total: 2,
+        totalPages: 1,
+        hasNext: false,
+        hasPrev: false,
+      });
+      expect(mockService.findAll).toHaveBeenCalledWith({ page: 1, limit: 10 });
     });
 
-    it('retorna 200 com lista vazia', async () => {
-      mockService.findAll.mockResolvedValue([]);
-      const res = await app.inject({ method: 'GET', url: '/api/quests' });
+    it('aceita query params page e limit', async () => {
+      mockService.findAll.mockResolvedValue({
+        data: [],
+        pagination: { page: 3, limit: 5, total: 12, totalPages: 3, hasNext: false, hasPrev: true },
+      });
+      const res = await app.inject({ method: 'GET', url: '/api/quests?page=3&limit=5' });
 
       expect(res.statusCode).toBe(200);
-      expect(res.json()).toEqual([]);
+      expect(mockService.findAll).toHaveBeenCalledWith({ page: 3, limit: 5 });
+    });
+
+    it('retorna 400 para page invalido', async () => {
+      const res = await app.inject({ method: 'GET', url: '/api/quests?page=0' });
+
+      expect(res.statusCode).toBe(400);
+      expect(res.json().message).toBe('Dados inválidos');
+      expect(mockService.findAll).not.toHaveBeenCalled();
+    });
+
+    it('retorna 400 para limit acima do max', async () => {
+      const res = await app.inject({ method: 'GET', url: '/api/quests?limit=500' });
+
+      expect(res.statusCode).toBe(400);
+      expect(mockService.findAll).not.toHaveBeenCalled();
     });
   });
 

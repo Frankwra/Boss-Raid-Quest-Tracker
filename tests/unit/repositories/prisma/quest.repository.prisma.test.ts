@@ -12,6 +12,7 @@ vi.mock('../../../../src/lib/prisma.js', () => ({
       findUnique: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
+      count: vi.fn(),
     },
   },
 }));
@@ -44,14 +45,29 @@ describe('QuestRepositoryPrisma', () => {
     });
   });
 
-  describe('findAll', () => {
-    it('deve chamar prisma.quest.findMany filtrando deletadoEm: null', async () => {
+  describe('findPaginated', () => {
+    it('deve chamar findMany com skip/take e count em paralelo, filtrando deletadoEm: null', async () => {
+      vi.mocked(prisma.quest.findMany).mockResolvedValue([{ id: 'q-1' }] as never);
+      vi.mocked(prisma.quest.count).mockResolvedValue(42);
+
+      const result = await repository.findPaginated({ skip: 20, take: 10 });
+
+      expect(prisma.quest.findMany).toHaveBeenCalledWith({
+        where: { deletadoEm: null },
+        skip: 20,
+        take: 10,
+      });
+      expect(prisma.quest.count).toHaveBeenCalledWith({ where: { deletadoEm: null } });
+      expect(result).toEqual({ data: [{ id: 'q-1' }], total: 42 });
+    });
+
+    it('deve retornar data vazia e total 0 quando nao ha registros', async () => {
       vi.mocked(prisma.quest.findMany).mockResolvedValue([]);
+      vi.mocked(prisma.quest.count).mockResolvedValue(0);
 
-      const result = await repository.findAll();
+      const result = await repository.findPaginated({ skip: 0, take: 10 });
 
-      expect(prisma.quest.findMany).toHaveBeenCalledWith({ where: { deletadoEm: null } });
-      expect(result).toEqual([]);
+      expect(result).toEqual({ data: [], total: 0 });
     });
   });
 
