@@ -11,12 +11,14 @@ class ApiError extends Error {
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const hasBody = init.body !== undefined && init.body !== null;
+  const headers = hasBody
+    ? { 'Content-Type': 'application/json', ...(init.headers ?? {}) }
+    : { ...(init.headers ?? {}) };
+
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(init.headers ?? {}),
-    },
+    headers,
   });
 
   if (!res.ok) {
