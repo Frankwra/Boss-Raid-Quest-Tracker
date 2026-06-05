@@ -45,24 +45,26 @@ describe('QuestRepositoryPrisma', () => {
   });
 
   describe('findAll', () => {
-    it('deve chamar prisma.quest.findMany sem argumentos', async () => {
+    it('deve chamar prisma.quest.findMany filtrando deletadoEm: null', async () => {
       vi.mocked(prisma.quest.findMany).mockResolvedValue([]);
 
       const result = await repository.findAll();
 
-      expect(prisma.quest.findMany).toHaveBeenCalledWith();
+      expect(prisma.quest.findMany).toHaveBeenCalledWith({ where: { deletadoEm: null } });
       expect(result).toEqual([]);
     });
   });
 
   describe('findById', () => {
-    it('deve chamar prisma.quest.findUnique com where: { id }', async () => {
+    it('deve chamar prisma.quest.findUnique com where: { id, deletadoEm: null }', async () => {
       const quest = { id: 'uuid-1' };
       vi.mocked(prisma.quest.findUnique).mockResolvedValue(quest as never);
 
       const result = await repository.findById('uuid-1');
 
-      expect(prisma.quest.findUnique).toHaveBeenCalledWith({ where: { id: 'uuid-1' } });
+      expect(prisma.quest.findUnique).toHaveBeenCalledWith({
+        where: { id: 'uuid-1', deletadoEm: null },
+      });
       expect(result).toBe(quest);
     });
 
@@ -76,14 +78,14 @@ describe('QuestRepositoryPrisma', () => {
   });
 
   describe('update', () => {
-    it('deve chamar prisma.quest.update com where e data', async () => {
+    it('deve chamar prisma.quest.update com where: { id, deletadoEm: null }', async () => {
       const quest = { id: 'uuid-1', titulo: 'Novo' };
       vi.mocked(prisma.quest.update).mockResolvedValue(quest as never);
 
       const result = await repository.update('uuid-1', { titulo: 'Novo' });
 
       expect(prisma.quest.update).toHaveBeenCalledWith({
-        where: { id: 'uuid-1' },
+        where: { id: 'uuid-1', deletadoEm: null },
         data: { titulo: 'Novo' },
       });
       expect(result).toBe(quest);
@@ -106,16 +108,19 @@ describe('QuestRepositoryPrisma', () => {
   });
 
   describe('delete', () => {
-    it('deve chamar prisma.quest.delete com where: { id }', async () => {
-      vi.mocked(prisma.quest.delete).mockResolvedValue(undefined);
+    it('deve fazer soft delete via prisma.quest.update com deletadoEm = Date', async () => {
+      vi.mocked(prisma.quest.update).mockResolvedValue({} as never);
 
       await repository.delete('uuid-1');
 
-      expect(prisma.quest.delete).toHaveBeenCalledWith({ where: { id: 'uuid-1' } });
+      expect(prisma.quest.update).toHaveBeenCalledWith({
+        where: { id: 'uuid-1', deletadoEm: null },
+        data: { deletadoEm: expect.any(Date) },
+      });
     });
 
     it('deve traduzir Prisma P2025 para ResourceNotFoundError', async () => {
-      vi.mocked(prisma.quest.delete).mockRejectedValue(makePrismaP2025());
+      vi.mocked(prisma.quest.update).mockRejectedValue(makePrismaP2025());
 
       await expect(repository.delete('uuid-inexistente')).rejects.toBeInstanceOf(
         ResourceNotFoundError
@@ -124,7 +129,7 @@ describe('QuestRepositoryPrisma', () => {
 
     it('deve propagar outros erros do Prisma', async () => {
       const error = new Error('DB offline');
-      vi.mocked(prisma.quest.delete).mockRejectedValue(error);
+      vi.mocked(prisma.quest.update).mockRejectedValue(error);
 
       await expect(repository.delete('uuid-1')).rejects.toThrow('DB offline');
     });
