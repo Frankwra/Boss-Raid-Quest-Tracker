@@ -7,9 +7,10 @@ export interface QuestStats {
   xpTotal: number;
   xpGanho: number;
   progresso: number;
+  partial: boolean;
 }
 
-export function computeStats(quests: Quest[]): QuestStats {
+export function computeStats(quests: Quest[], options: { partial?: boolean } = {}): QuestStats {
   const total = quests.length;
   const concluidas = quests.filter((q) => q.concluida).length;
   const pendentes = total - concluidas;
@@ -17,7 +18,7 @@ export function computeStats(quests: Quest[]): QuestStats {
   const xpGanho = quests.filter((q) => q.concluida).reduce((sum, q) => sum + q.xp, 0);
   const progresso = total > 0 ? Math.round((concluidas / total) * 100) : 0;
 
-  return { total, concluidas, pendentes, xpTotal, xpGanho, progresso };
+  return { total, concluidas, pendentes, xpTotal, xpGanho, progresso, partial: options.partial === true };
 }
 
 export type StatusFilter = 'todas' | 'concluidas' | 'pendentes';

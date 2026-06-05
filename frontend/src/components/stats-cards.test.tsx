@@ -11,6 +11,7 @@ describe('<StatsCards />', () => {
     xpTotal: 16500,
     xpGanho: 2300,
     progresso: 38,
+    partial: false,
   };
 
   it('renderiza os 6 cards com labels', () => {
@@ -53,6 +54,7 @@ describe('<StatsCards />', () => {
       xpTotal: 0,
       xpGanho: 0,
       progresso: 0,
+      partial: false,
     };
     render(<StatsCards stats={empty} />);
     expect(screen.getAllByText('0')).toHaveLength(5);

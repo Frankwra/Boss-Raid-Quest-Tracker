@@ -25,6 +25,7 @@ describe('computeStats', () => {
       xpTotal: 0,
       xpGanho: 0,
       progresso: 0,
+      partial: false,
     };
     expect(computeStats([])).toEqual(expected);
   });
@@ -80,6 +81,14 @@ describe('computeStats', () => {
   it('arredondamento do progresso: 1 de 3 = 33%', () => {
     const quests = [makeQuest({ concluida: true }), makeQuest({ concluida: false }), makeQuest({ concluida: false })];
     expect(computeStats(quests).progresso).toBe(33);
+  });
+
+  it('partial e false por padrao', () => {
+    expect(computeStats([]).partial).toBe(false);
+  });
+
+  it('partial e true quando options.partial = true', () => {
+    expect(computeStats([], { partial: true }).partial).toBe(true);
   });
 });
 

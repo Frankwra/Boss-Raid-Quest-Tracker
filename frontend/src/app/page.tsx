@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { ErrorState } from '@/components/error-state';
+import { Pagination } from '@/components/pagination';
 import { QuestFilters } from '@/components/quest-filters';
 import { QuestList } from '@/components/quest-list';
 import { QuestListSkeleton } from '@/components/quest-list-skeleton';
@@ -13,15 +14,23 @@ import { computeStats, filterQuests, type StatusFilter } from '@/lib/stats';
 export default function HomePage() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<StatusFilter>('todas');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
   const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ['quests'],
-    queryFn: questsApi.findAll,
+    queryKey: ['quests', page, limit],
+    queryFn: () => questsApi.findAll({ page, limit }),
   });
 
-  const quests = data ?? [];
-  const stats = useMemo(() => computeStats(quests), [quests]);
+  const quests = data?.data ?? [];
+  const pagination = data?.pagination;
+  const stats = useMemo(() => computeStats(quests, { partial: true }), [quests]);
   const filtered = useMemo(() => filterQuests(quests, search, status), [quests, search, status]);
+
+  function handleLimitChange(newLimit: number) {
+    setLimit(newLimit);
+    setPage(1);
+  }
 
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-10">
@@ -50,6 +59,11 @@ export default function HomePage() {
         <>
           <section className="mb-8">
             <StatsCards stats={stats} />
+            {stats.partial && (
+              <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                Estatisticas da pagina atual. Para totais globais, navegue pelas paginas.
+              </p>
+            )}
           </section>
 
           <section className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -69,12 +83,22 @@ export default function HomePage() {
 
           {filtered.length === 0 ? (
             <p className="text-zinc-500">
-              {quests.length === 0
+              {quests.length === 0 && pagination?.total === 0
                 ? 'Nenhuma quest cadastrada. Crie a primeira!'
                 : 'Nenhuma quest corresponde aos filtros.'}
             </p>
           ) : (
             <QuestList quests={filtered} />
+          )}
+
+          {pagination && pagination.total > 0 && (
+            <div className="mt-6">
+              <Pagination
+                pagination={pagination}
+                onPageChange={setPage}
+                onLimitChange={handleLimitChange}
+              />
+            </div>
           )}
         </>
       )}
