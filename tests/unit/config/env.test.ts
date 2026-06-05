@@ -12,12 +12,17 @@ const baseValidEnv = {
   NODE_ENV: 'development',
 };
 
-async function loadEnv(env: NodeJS.ProcessEnv) {
+async function loadEnv(env: NodeJS.ProcessEnv, excludeFromOriginal: string[] = []) {
   vi.resetModules();
   for (const key of Object.keys(process.env)) {
     delete process.env[key];
   }
-  Object.assign(process.env, originalEnv, env);
+  for (const [key, value] of Object.entries(originalEnv)) {
+    if (!excludeFromOriginal.includes(key)) {
+      process.env[key] = value;
+    }
+  }
+  Object.assign(process.env, env);
   return import('../../../src/config/env.js');
 }
 
@@ -41,12 +46,15 @@ describe('env schema', () => {
   });
 
   it('deve aplicar defaults para PORT, POSTGRES_PORT e NODE_ENV', async () => {
-    const { env } = await loadEnv({
-      DATABASE_URL: baseValidEnv.DATABASE_URL,
-      POSTGRES_USER: baseValidEnv.POSTGRES_USER,
-      POSTGRES_PASSWORD: baseValidEnv.POSTGRES_PASSWORD,
-      POSTGRES_DB: baseValidEnv.POSTGRES_DB,
-    });
+    const { env } = await loadEnv(
+      {
+        DATABASE_URL: baseValidEnv.DATABASE_URL,
+        POSTGRES_USER: baseValidEnv.POSTGRES_USER,
+        POSTGRES_PASSWORD: baseValidEnv.POSTGRES_PASSWORD,
+        POSTGRES_DB: baseValidEnv.POSTGRES_DB,
+      },
+      ['PORT', 'POSTGRES_PORT', 'NODE_ENV']
+    );
     expect(env.PORT).toBe('3333');
     expect(env.POSTGRES_PORT).toBe('5432');
     expect(env.NODE_ENV).toBe('development');

@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import { questsRoutes } from './routes/quests.routes.js';
+import { env } from './config/env.js';
 
 const app = Fastify({
   logger: true,
@@ -7,7 +8,7 @@ const app = Fastify({
 
 app.register(questsRoutes);
 
-const PORT = 3333;
+const PORT = Number(env.PORT);
 const HOST = '0.0.0.0';
 
 app
