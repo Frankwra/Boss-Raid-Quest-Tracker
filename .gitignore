@@ -2,8 +2,6 @@
 .env.*
 !.env.example
 
-.claude/
-
 __pycache__/
 *.py[cod]
 *$py.class
